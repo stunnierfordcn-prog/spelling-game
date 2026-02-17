@@ -1,72 +1,82 @@
- const targetWord = "MATUTULOG";
-    let guessed = Array(targetWord.length).fill("_");
+const targetWord = "MATUTULOG";
+let guessed = Array(targetWord.length).fill("_");
+let lives = 5;
 
-    const wordDisplay = document.getElementById("wordDisplay");
-    const keyboard = document.getElementById("keyboard");
-    const videoContainer = document.getElementById("videoContainer");
-    const video = document.getElementById("video");
+const wordDisplay = document.getElementById("wordDisplay");
+const keyboard = document.getElementById("keyboard");
+const videoContainer = document.getElementById("videoContainer");
+const video = document.getElementById("video");
 
-    function updateDisplay() {
-      wordDisplay.textContent = guessed.join(" ");
-    }
+/* ===== UPDATE DISPLAY ===== */
+function updateDisplay() {
+  wordDisplay.textContent = guessed.join(" ");
+}
 
-    function handleKey(letter, button) {
-      document.querySelectorAll('.key').forEach(btn => btn.classList.remove('clicked'));
-      button.classList.add('clicked');
-
-      let found = false;
-      for (let i = 0; i < targetWord.length; i++) {
-        if (targetWord[i] === letter && guessed[i] === "_") {
-          guessed[i] = letter;
-          found = true;
-        }
-      }
-
-      updateDisplay();
-
-      if (!found) {
-        alert("Please put the correct answer");
-      }
-    }
-
-    const rows = [
-      "ABCDEFGHIJ".split(""),
-      "KLMNOPQRST".split(""),
-      "UVWXYZ".split("").concat(["ENTER"])
-    ];
-
-    const rowClasses = ["row1", "row2", "row3"];
-
-    rows.forEach((row, i) => {
-      const rowDiv = document.createElement("div");
-      rowDiv.className = `row ${rowClasses[i]}`;
-
-      row.forEach(letter => {
-        const btn = document.createElement("button");
-        btn.textContent = letter;
-        btn.className = "key";
-        if (letter === "ENTER") btn.classList.add("enter");
-
-     btn.onclick = () => {
-  if (letter !== "ENTER") {
-    handleKey(letter, btn);
-  } else {
-    if (!guessed.includes("_")) {
- 
+/* ===== CHECK WIN ===== */
+function checkWin() {
+  if (!guessed.includes("_")) {
+    setTimeout(() => {
       document.querySelector(".wrapper-center").style.display = "none";
-      videoContainer.style.display = "block";
+      videoContainer.style.display = "flex";
       video.play();
-    } else {
-      alert("Please complete the word before pressing ENTER.");
+    }, 500);
+  }
+}
+
+/* ===== GAME OVER ===== */
+function gameOver() {
+  alert("Game Over! The word was: " + targetWord);
+  location.reload();
+}
+
+/* ===== HANDLE KEY ===== */
+function handleKey(letter, button) {
+  button.disabled = true;
+  button.classList.add("clicked");
+
+  let found = false;
+
+  for (let i = 0; i < targetWord.length; i++) {
+    if (targetWord[i] === letter && guessed[i] === "_") {
+      guessed[i] = letter;
+      found = true;
     }
   }
-};
 
+  if (!found) {
+    lives--;
+    if (lives <= 0) {
+      gameOver();
+      return;
+    }
+  }
 
-        rowDiv.appendChild(btn);
-      });
+  updateDisplay();
+  checkWin();
+}
 
-      keyboard.appendChild(rowDiv);
-    });
+/* ===== KEYBOARD LAYOUT ===== */
+const rows = [
+  "ABCDEFGHIJ".split(""),
+  "KLMNOPQRST".split(""),
+  "UVWXYZ".split("")
+];
 
-    updateDisplay();
+rows.forEach(row => {
+  const rowDiv = document.createElement("div");
+  rowDiv.className = "row";
+
+  row.forEach(letter => {
+    const btn = document.createElement("button");
+    btn.textContent = letter;
+    btn.className = "key";
+
+    btn.onclick = () => handleKey(letter, btn);
+
+    rowDiv.appendChild(btn);
+  });
+
+  keyboard.appendChild(rowDiv);
+});
+
+updateDisplay();
